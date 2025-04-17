@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "led.h"
+#include "key.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,6 +55,20 @@ LED_HandleTypeDef LED3 = {
   .GPIO_Pin = GPIO_PIN_13,
   .ActiveMode = LED_ACTIVE_LOW
 };
+
+//KEY
+Key_HandleTypeDef key[] = {
+    {   // KEY0(PD11)
+        .GPIOx = GPIOD,
+        .GPIO_Pin = GPIO_PIN_11,
+        .ActiveMode = KEY_ACTIVE_LOW  // ????????
+    },
+    {   // KEY1(PE15)
+        .GPIOx = GPIOE,
+        .GPIO_Pin = GPIO_PIN_15,
+        .ActiveMode = KEY_ACTIVE_LOW
+    }
+};
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -69,7 +84,12 @@ LED_HandleTypeDef LED3 = {
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static uint32_t key0_last_tick = 0;
+static uint32_t key1_last_tick = 0;
+	int flag1 = 0;
+	int flag2 = 0;
+	int flag3 = 0;
+	int flag4 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,6 +121,8 @@ void LED_Test(){
 		LED_Off(&LED3);
 		HAL_Delay (500);
 };
+
+
 /* USER CODE END 0 */
 
 /**
@@ -134,14 +156,32 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
 	LED_Init_All();
-	
+	Key_Init(&key[0]);
+  Key_Init(&key[1]);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		LED_Test();
+        Key_Update(&key[0]);
+        Key_Update(&key[1]);
+
+        // KEY0
+        if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED) {
+            HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_14); //LED2
+					flag1++;
+        }
+/*
+        //KEY1
+        if (Key_GetState(&key[1]) == KEY_STATE_JUST_PRESSED) {
+						HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13); //LED3
+        }
+*/
+        HAL_Delay(10); 
+				flag2++;
+		//HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_14); // ??LED??
+    //HAL_Delay(500); // 500ms
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -248,7 +288,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/*void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+  uint32_t current_tick = HAL_GetTick();
 
+  switch (GPIO_Pin) {
+    case KEY0_Pin: // KEY0(PD11)
+      if (current_tick - key0_last_tick > 50) { // ??50ms
+        key0_last_tick = current_tick;
+        // ??KEY0??(???LED)
+        LED_Toggle(&LED2);
+				flag1++;
+      }
+      break;
+
+    case KEY1_Pin: // KEY1(PE15)
+      if (current_tick - key1_last_tick > 50) {
+        key1_last_tick = current_tick;
+        // ??KEY1??
+				LED_Toggle(&LED0);
+				flag2++;
+      }
+      break;
+  }
+	flag3++;
+}*/
 /* USER CODE END 4 */
 
 /**
