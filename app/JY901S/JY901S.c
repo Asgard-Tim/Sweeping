@@ -14,7 +14,6 @@ void JY901S_Init(UART_HandleTypeDef *huart)
 
 void JY901S_UART_RxHandler(uint8_t *data)
 {
-    // ????(???????????????)
     if (data[0] == 0x55) {
         switch (data[1]) {
             case 0x51: // ???
