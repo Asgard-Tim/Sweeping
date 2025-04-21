@@ -3,6 +3,7 @@
 "srobo\main.o"
 "srobo\stm32f4xx_it.o"
 "srobo\stm32f4xx_hal_msp.o"
+"srobo\stm32f4xx_hal_uart.o"
 "srobo\stm32f4xx_hal_rcc.o"
 "srobo\stm32f4xx_hal_rcc_ex.o"
 "srobo\stm32f4xx_hal_flash.o"
@@ -19,6 +20,8 @@
 "srobo\system_stm32f4xx.o"
 "srobo\led.o"
 "srobo\key.o"
+"srobo\a4950.o"
+"srobo\jy901s.o"
 --strict --scatter "SRobo\SRobo.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

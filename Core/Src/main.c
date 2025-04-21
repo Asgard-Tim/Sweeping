@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "led.h"
 #include "key.h"
+#include "jy901s.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,19 +83,22 @@ Key_HandleTypeDef key[] = {
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+uint8_t jy_rx_buf[11];
 static uint32_t key0_last_tick = 0;
 static uint32_t key1_last_tick = 0;
-	int flag1 = 0;
-	int flag2 = 0;
-	int flag3 = 0;
-	int flag4 = 0;
+int flag1 = 0;
+int flag2 = 0;
+int flag3 = 0;
+int flag4 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -154,34 +158,20 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 	LED_Init_All();
 	Key_Init(&key[0]);
   Key_Init(&key[1]);
+	JY901S_Init(&huart2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-        Key_Update(&key[0]);
-        Key_Update(&key[1]);
-
-        // KEY0
-        if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED) {
-            HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_14); //LED2
-					flag1++;
-        }
-/*
-        //KEY1
-        if (Key_GetState(&key[1]) == KEY_STATE_JUST_PRESSED) {
-						HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13); //LED3
-        }
-*/
-        HAL_Delay(10); 
-				flag2++;
-		//HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_14); // ??LED??
-    //HAL_Delay(500); // 500ms
+			IMU_Data_t *imu = JY901S_GetData();
+		flag1++;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -235,6 +225,39 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -252,17 +275,22 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, OUTAIN1_Pin|OUTAIN2_Pin|OUTBIN1_Pin|OUTBIN2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, LED3_Pin|LED0_Pin|LED1_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pin : LED2_Pin */
-  GPIO_InitStruct.Pin = LED2_Pin;
+  /*Configure GPIO pins : OUTAIN1_Pin OUTAIN2_Pin OUTBIN1_Pin OUTBIN2_Pin
+                           LED2_Pin */
+  GPIO_InitStruct.Pin = OUTAIN1_Pin|OUTAIN2_Pin|OUTBIN1_Pin|OUTBIN2_Pin
+                          |LED2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : KEY1_Pin */
   GPIO_InitStruct.Pin = KEY1_Pin;
@@ -288,30 +316,23 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/*void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-  uint32_t current_tick = HAL_GetTick();
-
-  switch (GPIO_Pin) {
-    case KEY0_Pin: // KEY0(PD11)
-      if (current_tick - key0_last_tick > 50) { // ??50ms
-        key0_last_tick = current_tick;
-        // ??KEY0??(???LED)
-        LED_Toggle(&LED2);
-				flag1++;
-      }
-      break;
-
-    case KEY1_Pin: // KEY1(PE15)
-      if (current_tick - key1_last_tick > 50) {
-        key1_last_tick = current_tick;
-        // ??KEY1??
-				LED_Toggle(&LED0);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART2) {
+        /*
+			  printf("Received: ");
+        for (int i = 0; i < 11; i++) {
+            printf("%02X ", jy_rx_buf[i]);
+        }
+        printf("\r\n");
+				*/
+				JY901S_UART_RxHandler(jy_rx_buf);
+        HAL_UART_Receive_IT(&huart2, jy_rx_buf, 11); 
 				flag2++;
-      }
-      break;
-  }
-	flag3++;
-}*/
+    }
+}
+
+
 /* USER CODE END 4 */
 
 /**
