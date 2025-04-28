@@ -26,6 +26,8 @@
 #include "key.h"
 #include "jy901s.h"
 #include "cliff_sensor.h"
+#include "crash_sensor.h"
+#include "A4950.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,7 +90,9 @@ Key_HandleTypeDef key[] = {
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim9;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -114,6 +118,8 @@ static void MX_USART2_UART_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_TIM9_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -141,13 +147,26 @@ void LED_Test(){
 		HAL_Delay (500);
 };
 
-// ???printf?UART
-int _write(int fd, char *ptr, int len)
-{
-    HAL_UART_Transmit(&huart1, (uint8_t *)ptr, len, HAL_MAX_DELAY);
-    return len;
-}
+void MOTOR_Test(){
+	// ��������50%�ٶ���ת
+    A4950_SetLeft(A4950_PWM_MAX / 2);
 
+    // ���ҵ����30%�ٶȷ�ת
+    A4950_SetRight(-A4950_PWM_MAX * 3 / 10);
+
+    HAL_Delay(2000);  // �������״̬2��
+
+    // ����ɲ��
+    A4950_Brake();
+
+    HAL_Delay(500);   // ɲ������0.5��
+
+    // ֹͣ�����Ҳ���Ե��� A4950_SetLeft(0) �� A4950_SetRight(0)��
+    A4950_SetLeft(0);
+    A4950_SetRight(0);
+
+    HAL_Delay(2000);  // ͣ2��
+};
 
 /* USER CODE END 0 */
 
@@ -185,6 +204,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
+  MX_TIM1_Init();
+  MX_TIM9_Init();
   /* USER CODE BEGIN 2 */
 	cliff_thresholds[0] = 200;
   cliff_thresholds[1] = 200;
@@ -196,6 +217,7 @@ int main(void)
   Key_Init(&key[1]);
 	JY901S_Init(&huart2);
 	CliffSensor_Init();
+	A4950_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -204,22 +226,17 @@ int main(void)
   {
 		//IMU_Data_t *imu = JY901S_GetData();
 		
-		/*
-		printf("Roll: %.2f Pitch: %.2f Yaw: %.2f\r\n", imu->roll, imu->pitch, imu->yaw);
-    printf("Ax: %.2f Ay: %.2f Az: %.2f\r\n", imu->ax, imu->ay, imu->az);
-    printf("Gx: %.2f Gy: %.2f Gz: %.2f\r\n", imu->gx, imu->gy, imu->gz);
-    HAL_Delay(100); // ?100ms????
-		*/
 		
+		/*
 		uint8_t mask = CliffSensor_GetMask();
 		CliffSensor_GetValues(sensor_vals);
-		// ???????
+		//ͳһ��ʼ��led
 		LED_Off(&LED0);
 		LED_Off(&LED1);
 		LED_Off(&LED2);
 		LED_Off(&LED3);
 
-		// ???????????
+		// �ж�
 		if (mask == 0) {
 				// ????? -> ???(????)
 				LED_Toggle(&LED0);
@@ -236,9 +253,13 @@ int main(void)
 
 		// ????????????
 		HAL_Delay(50);
-
-		//printf("Hello World!\r\n");
-				flag1++;
+		*/
+				LED_Test();
+				
+				A4950_SetLeft(60);
+				A4950_SetRight(60);
+				
+				flag1++;//���м��
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -371,6 +392,85 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 119;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 99;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 50;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -412,6 +512,62 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM9 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM9_Init(void)
+{
+
+  /* USER CODE BEGIN TIM9_Init 0 */
+
+  /* USER CODE END TIM9_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM9_Init 1 */
+
+  /* USER CODE END TIM9_Init 1 */
+  htim9.Instance = TIM9;
+  htim9.Init.Prescaler = 119;
+  htim9.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim9.Init.Period = 99;
+  htim9.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim9.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim9) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim9, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim9) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 50;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim9, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim9, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM9_Init 2 */
+
+  /* USER CODE END TIM9_Init 2 */
+  HAL_TIM_MspPostInit(&htim9);
 
 }
 
@@ -512,10 +668,10 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
@@ -524,6 +680,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, LED3_Pin|LED0_Pin|LED1_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : CRASH_L_Pin */
+  GPIO_InitStruct.Pin = CRASH_L_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(CRASH_L_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED2_Pin */
   GPIO_InitStruct.Pin = LED2_Pin;
@@ -538,11 +700,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(KEY1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : KEY0_Pin */
-  GPIO_InitStruct.Pin = KEY0_Pin;
+  /*Configure GPIO pins : KEY0_Pin CRASH_R_Pin */
+  GPIO_InitStruct.Pin = KEY0_Pin|CRASH_R_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(KEY0_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LED3_Pin LED0_Pin LED1_Pin */
   GPIO_InitStruct.Pin = LED3_Pin|LED0_Pin|LED1_Pin;

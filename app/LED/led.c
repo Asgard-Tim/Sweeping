@@ -33,3 +33,4 @@ void LED_Off(LED_HandleTypeDef *led) {
 void LED_Toggle(LED_HandleTypeDef *led) {
   HAL_GPIO_TogglePin(led->GPIOx, led->GPIO_Pin);
 }
+

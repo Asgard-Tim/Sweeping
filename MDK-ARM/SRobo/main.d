@@ -40,3 +40,5 @@ srobo\main.o: ../app/KEY/key.h
 srobo\main.o: ../app/JY901S/jy901s.h
 srobo\main.o: ../app/cliff_sensor/cliff_sensor.h
 srobo\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+srobo\main.o: ../app/crash_sensor/crash_sensor.h
+srobo\main.o: ../app/A4950/A4950.h

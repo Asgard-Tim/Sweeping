@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../app/LED;../app/KEY;../app/A4950;../app/JY901S;../app/retarget;../app/cliff_sensor</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../app/LED;../app/KEY;../app/A4950;../app/JY901S;../app/retarget;../app/cliff_sensor;../app/crash_sensor</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -898,6 +898,21 @@
               <FileName>cliff_sensor.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\app\cliff_sensor\cliff_sensor.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>crash _sensor</GroupName>
+          <Files>
+            <File>
+              <FileName>crash_sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\crash_sensor\crash_sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>crash_sensor.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\crash_sensor\crash_sensor.h</FilePath>
             </File>
           </Files>
         </Group>

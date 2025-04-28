@@ -4,26 +4,26 @@
 #include "main.h"
 
 typedef struct {
-    float ax, ay, az;         // ???(?? g)
-    float gx, gy, gz;         // ???(?? °/s)
-    float roll, pitch, yaw;   // ???(?? °)
+    float ax, ay, az;         // ¼ÓËÙ¶È£¨µ¥Î» g£©
+    float gx, gy, gz;         // ½ÇËÙ¶È£¨µ¥Î» ¡ã/s£©
+    float roll, pitch, yaw;   // Å·À­½Ç£¨µ¥Î» ¡ã£©
 } IMU_Data_t;
 
 /**
- * @brief ??? JY901S IMU ??
- * @param huart ????? UART ??(??? &huart2)
+ * @brief ³õÊ¼»¯ JY901S IMU Ä£¿é
+ * @param huart Ê¹ÓÃµÄ UART ¾ä±ú£¨Èç &huart2£©
  */
 void JY901S_Init(UART_HandleTypeDef *huart);
 
 /**
- * @brief ????????????????????
- * @param data ??????????
+ * @brief ¹©ÖĞ¶Ï»Øµ÷µ÷ÓÃµÄÊı¾İ´¦Àíº¯Êı
+ * @param data ÊÕµ½µÄÍêÕû11×Ö½ÚÊı¾İÖ¡
  */
 void JY901S_UART_RxHandler(uint8_t *data);
 
 /**
- * @brief ???? IMU ??
- * @return ?????? IMU ???????
+ * @brief »ñÈ¡µ±Ç°½âÎöµÄ IMU Êı¾İ
+ * @return ·µ»ØÖ¸Ïò IMU Êı¾İ½á¹¹ÌåµÄÖ¸Õë
  */
 IMU_Data_t* JY901S_GetData(void);
 
