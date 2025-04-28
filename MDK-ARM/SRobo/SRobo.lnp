@@ -29,6 +29,7 @@
 "srobo\jy901s.o"
 "srobo\cliff_sensor.o"
 "srobo\crash_sensor.o"
+"srobo\encoder.o"
 --strict --scatter "SRobo\SRobo.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
