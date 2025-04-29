@@ -168,27 +168,17 @@
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>imu_data</ItemText>
+          <ItemText>leftCountGlobal,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>leftCount</ItemText>
+          <ItemText>rightCountGlobal,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>rightCount</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>leftCountGlobal,0x0A</ItemText>
-        </Ww>
-        <Ww>
-          <count>7</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>rightCountGlobal,0x0A</ItemText>
+          <ItemText>imu</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
