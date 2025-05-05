@@ -6,7 +6,7 @@ srobo\a4950.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 srobo\a4950.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 srobo\a4950.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
 srobo\a4950.o: ../Drivers/CMSIS/Include/core_cm4.h
-srobo\a4950.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+srobo\a4950.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 srobo\a4950.o: ../Drivers/CMSIS/Include/cmsis_version.h
 srobo\a4950.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 srobo\a4950.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
@@ -14,7 +14,7 @@ srobo\a4950.o: ../Drivers/CMSIS/Include/mpu_armv7.h
 srobo\a4950.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
 srobo\a4950.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 srobo\a4950.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-srobo\a4950.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+srobo\a4950.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 srobo\a4950.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h
 srobo\a4950.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h
 srobo\a4950.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h

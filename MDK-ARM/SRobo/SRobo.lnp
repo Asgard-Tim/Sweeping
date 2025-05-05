@@ -1,4 +1,4 @@
---cpu=Cortex-M4.fp.sp
+--cpu=Cortex-M4.fp
 "srobo\startup_stm32f407xx.o"
 "srobo\main.o"
 "srobo\stm32f4xx_it.o"

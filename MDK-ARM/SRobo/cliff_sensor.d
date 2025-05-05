@@ -1,7 +1,7 @@
 srobo\cliff_sensor.o: ..\app\cliff_sensor\cliff_sensor.c
 srobo\cliff_sensor.o: ..\app\cliff_sensor\cliff_sensor.h
-srobo\cliff_sensor.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
-srobo\cliff_sensor.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+srobo\cliff_sensor.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+srobo\cliff_sensor.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 srobo\cliff_sensor.o: ../Core/Inc/main.h
 srobo\cliff_sensor.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 srobo\cliff_sensor.o: ../Core/Inc/stm32f4xx_hal_conf.h
@@ -17,7 +17,7 @@ srobo\cliff_sensor.o: ../Drivers/CMSIS/Include/mpu_armv7.h
 srobo\cliff_sensor.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
 srobo\cliff_sensor.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 srobo\cliff_sensor.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-srobo\cliff_sensor.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+srobo\cliff_sensor.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 srobo\cliff_sensor.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h
 srobo\cliff_sensor.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h
 srobo\cliff_sensor.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h

@@ -84,7 +84,12 @@ Encoder_HandleTypeDef encL, encR;
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define ROUND_TIME 100.0f
 #define TX_BUF_SIZE 128
+#define MOTOR_REDUCTION_RATIO 63  //Motor reduction ratio
+#define PULSE_PRE_ROUND 20 //The number of pulses per turn of the encoder
+#define RADIUS_OF_TIRE 34 //Tire radius, in millimeters
+#define CIRCLES_OF_TIRE RADIUS_OF_TIRE * 2 * 3.14
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -113,13 +118,34 @@ uint8_t uart1_tx_buf[TX_BUF_SIZE];
 uint16_t sensor_vals[CLIFF_SENSOR_COUNT];
 static uint32_t key0_last_tick = 0;
 static uint32_t key1_last_tick = 0;
-int flag1 = 0;
-int flag2 = 0;
-int flag3 = 0;
-int flag4 = 0;
+int rounds = 0;
 volatile int32_t leftCountGlobal  = 0;
 volatile int32_t rightCountGlobal = 0;
+volatile int32_t leftCount  = 0;
+volatile int32_t rightCount = 0;
+float leftSpeed = 0.0f;
+float rightSpeed = 0.0f;
+float time = ROUND_TIME / 1000.0f;
+float target_speed_left = 10.0f;
+float kp_left = 0.5f;
+float ki_left = 0.1f;
+float kd_left = 0.005f;
+float previous_error_left = 0.0f;
+float error_left = 0.0f;
+float integral_left = 0.0f;
+float derivative_left = 0.0f;
+float pid_output_left = 0.0f;
+float target_speed_right = 10.0f;
+float kp_right = 0.5f;
+float ki_right = 0.1f;
+float kd_right = 0.005f;
+float previous_error_right = 0.0f;
+float error_right = 0.0f;
+float integral_right = 0.0f;
+float derivative_right = 0.0f;
+float pid_output_right = 0.0f;
 IMU_Data_t *imu;
+int flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -163,25 +189,90 @@ void LED_Test(){
 };
 
 void MOTOR_Test(){
-	// ��������50%�ٶ���ת
     A4950_SetLeft(A4950_PWM_MAX *2 / 3);
 
-    // ���ҵ����30%�ٶȷ�ת
-    A4950_SetRight(-A4950_PWM_MAX / 3);
+    A4950_SetRight(- A4950_PWM_MAX / 3);
 
-    HAL_Delay(2000);  // �������״̬2��
+    HAL_Delay(2000);
 
-    // ����ɲ��
     A4950_Brake();
 
-    HAL_Delay(500);   // ɲ������0.5��
+    HAL_Delay(500);
 
-    // ֹͣ�����Ҳ���Ե��� A4950_SetLeft(0) �� A4950_SetRight(0)��
     A4950_SetLeft(0);
     A4950_SetRight(0);
 
-    HAL_Delay(2000);  // ͣ2��
+    HAL_Delay(2000);
 };
+
+void SENSOR_Test(){
+		uint8_t mask = CliffSensor_GetMask();
+		CliffSensor_GetValues(sensor_vals);
+
+		LED_Off(&LED0);
+		LED_Off(&LED1);
+		LED_Off(&LED2);
+		LED_Off(&LED3);
+
+		if (mask == 0) {
+				LED_Toggle(&LED0);
+				LED_Toggle(&LED1);
+				LED_Toggle(&LED2);
+				LED_Toggle(&LED3);
+				HAL_Delay(200);
+		} else {
+				if (mask & CLIFF_1) LED_On(&LED0);
+				if (mask & CLIFF_2) LED_On(&LED1);
+				if (mask & CLIFF_3) LED_On(&LED2);
+				if (mask & CLIFF_4) LED_On(&LED3);
+		}
+
+		HAL_Delay(50);
+}
+	
+
+void PID_Control_Left(void){
+		error_left = target_speed_left - leftSpeed;
+		
+		integral_left += error_left;
+		if (integral_left > 99.0f)
+			integral_left = 99.0f;
+		else if (integral_left < - 99.0f)
+			integral_left = -99.0f;
+		
+		derivative_left = error_left - previous_error_left;
+		
+		pid_output_left = kp_left * error_left + ki_left * integral_left + kd_left * derivative_left;
+		
+		if (pid_output_left > 99.0f)
+			pid_output_left = 99.0f;
+		else if (pid_output_left < - 99.0f)
+			pid_output_left = -99.0f;
+		
+		previous_error_left = error_left;
+}
+
+void PID_Control_Right(void){
+		error_right = target_speed_right - rightSpeed;
+		
+		integral_right += error_right;
+		if (integral_right > 99.0f)
+			integral_right = 99.0f;
+		else if (integral_right < - 99.0f)
+			integral_right = -99.0f;
+		
+		derivative_right = error_right - previous_error_right;
+		
+		pid_output_right = kp_right * error_right + ki_right * integral_right + kd_right * derivative_right;
+		
+		if (pid_output_right > 99.0f)
+			pid_output_right = 99.0f;
+		else if (pid_output_right < - 99.0f)
+			pid_output_right = -99.0f;
+		
+		previous_error_right = error_right;
+}
+	
 
 void HC05_OnByteReceived(uint8_t byte)
 {
@@ -244,58 +335,77 @@ int main(void)
 	HC05_Init(&huart3);
 
 	// 绑定并启动编码器接口
-  Encoder_Init(&encL, &htim2);
-  Encoder_Init(&encR, &htim5);
+  Encoder_Init(&encL, &htim5);
+  Encoder_Init(&encR, &htim2);
 	// 清零计数
   Encoder_Reset(&encL);
   Encoder_Reset(&encR);
+	
+	A4950_SetLeft(A4950_PWM_MAX * 0.7);
+	A4950_SetRight(A4950_PWM_MAX * 0.7);
+	HAL_Delay(ROUND_TIME);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		imu = JY901S_GetData();
-		
-		
-		/*
-		uint8_t mask = CliffSensor_GetMask();
-		CliffSensor_GetValues(sensor_vals);
-		//ͳһ��ʼ��led
-		LED_Off(&LED0);
-		LED_Off(&LED1);
-		LED_Off(&LED2);
-		LED_Off(&LED3);
+		// 更新按键状态（需定期调用）
+    Key_Update(&key[0]); // 检测KEY0
+    Key_Update(&key[1]); // 检测KEY1
 
-		// �ж�
-		if (mask == 0) {
-				// ????? -> ???(????)
-				LED_Toggle(&LED0);
-				LED_Toggle(&LED1);
-				LED_Toggle(&LED2);
-				LED_Toggle(&LED3);
-				HAL_Delay(200);
-		} else {
-				if (mask & CLIFF_1) LED_On(&LED0);
-				if (mask & CLIFF_2) LED_On(&LED1);
-				if (mask & CLIFF_3) LED_On(&LED2);
-				if (mask & CLIFF_4) LED_On(&LED3);
+    // 检测KEY0是否刚刚按下（下降沿触发）
+    if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED)
+        flag = 1; 
+
+		// 测试函数
+		//LED_Test();
+		//MOTOR_Test();
+		//SENSOR_Test();	
+
+		if (flag == 0){
+			// 接收上位机指令
+			
+			// 检测悬崖传感器
+			
+			// 检测碰撞传感器
+			
+			// 运动
+			// 计算当前速度
+			leftCount = leftCountGlobal;
+			leftCountGlobal  = Encoder_GetCount(&encL);
+			leftCount -= leftCountGlobal;
+			leftSpeed = leftCount / time / PULSE_PRE_ROUND / MOTOR_REDUCTION_RATIO * CIRCLES_OF_TIRE / 10; // cm/s
+			
+			rightCount = rightCountGlobal;
+			rightCountGlobal = - Encoder_GetCount(&encR);
+			rightCount -= rightCountGlobal;
+			rightSpeed = rightCount / time / PULSE_PRE_ROUND / MOTOR_REDUCTION_RATIO * CIRCLES_OF_TIRE / 10; // cm/s
+			
+			// PID控制
+			PID_Control_Left();
+			PID_Control_Right();
+			
+			// 驱动电机
+			//A4950_SetLeft(A4950_PWM_MAX * 0.7);
+			//A4950_SetRight(A4950_PWM_MAX * 0.7);
+			A4950_SetLeft(pid_output_left * 7);
+			A4950_SetRight(pid_output_right * 7);
+			
+			// 计算位姿
+			imu = JY901S_GetData();
+			
+			// 发送实时位姿和速度给上位机
+			
+		
+			rounds++;
 		}
-
-		// ????????????
-		HAL_Delay(50);
-		*/
-		
-		
-				LED_Test();
-				
-				//MOTOR_Test();
-//				A4950_SetLeft(A4950_PWM_MAX *2 / 3);
-//				A4950_SetRight(-A4950_PWM_MAX / 3);
-//				leftCountGlobal  = Encoder_GetCount(&encL);
-//        rightCountGlobal = Encoder_GetCount(&encR);
-//				flag1++;//���м��
-//				HAL_Delay(100);
+		else{
+			A4950_SetLeft(0);
+			A4950_SetRight(0);
+		}
+			
+		HAL_Delay(ROUND_TIME);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

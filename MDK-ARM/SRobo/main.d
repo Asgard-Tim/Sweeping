@@ -7,7 +7,7 @@ srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 srobo\main.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 srobo\main.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
 srobo\main.o: ../Drivers/CMSIS/Include/core_cm4.h
-srobo\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+srobo\main.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 srobo\main.o: ../Drivers/CMSIS/Include/cmsis_version.h
 srobo\main.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 srobo\main.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
@@ -15,7 +15,7 @@ srobo\main.o: ../Drivers/CMSIS/Include/mpu_armv7.h
 srobo\main.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-srobo\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+srobo\main.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio_ex.h
@@ -34,12 +34,12 @@ srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-srobo\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+srobo\main.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 srobo\main.o: ../app/LED/led.h
 srobo\main.o: ../app/KEY/key.h
 srobo\main.o: ../app/JY901S/jy901s.h
 srobo\main.o: ../app/cliff_sensor/cliff_sensor.h
-srobo\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+srobo\main.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 srobo\main.o: ../app/crash_sensor/crash_sensor.h
 srobo\main.o: ../app/A4950/A4950.h
 srobo\main.o: ../app/encoder/encoder.h
