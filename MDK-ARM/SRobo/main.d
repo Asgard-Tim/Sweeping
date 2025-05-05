@@ -42,4 +42,5 @@ srobo\main.o: ../app/cliff_sensor/cliff_sensor.h
 srobo\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 srobo\main.o: ../app/crash_sensor/crash_sensor.h
 srobo\main.o: ../app/A4950/A4950.h
-srobo\main.o: ..\app\encoder\encoder.h
+srobo\main.o: ../app/encoder/encoder.h
+srobo\main.o: ../app/hc05/hc05.h

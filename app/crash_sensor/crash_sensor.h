@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "main.h"  // 包含 GPIO 针脚定义（由 CubeMX 生成）
+#include "main.h"
 
 #ifdef __cplusplus
 extern "C" {

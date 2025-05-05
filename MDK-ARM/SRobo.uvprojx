@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../app/LED;../app/KEY;../app/A4950;../app/JY901S;../app/retarget;../app/cliff_sensor;../app/crash_sensor;..\app\encoder</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../app/LED;../app/KEY;../app/A4950;../app/JY901S;../app/retarget;../app/cliff_sensor;../app/crash_sensor;../app/encoder;../app/hc05</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -928,6 +928,21 @@
               <FileName>encoder.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\app\encoder\encoder.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>hc05</GroupName>
+          <Files>
+            <File>
+              <FileName>hc05.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\app\hc05\hc05.c</FilePath>
+            </File>
+            <File>
+              <FileName>hc05.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\app\hc05\hc05.h</FilePath>
             </File>
           </Files>
         </Group>

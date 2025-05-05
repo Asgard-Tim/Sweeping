@@ -29,6 +29,7 @@
 #include "crash_sensor.h"
 #include "A4950.h"
 #include "encoder.h"
+#include "hc05.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,6 +104,7 @@ TIM_HandleTypeDef htim9;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
@@ -117,6 +119,7 @@ int flag3 = 0;
 int flag4 = 0;
 volatile int32_t leftCountGlobal  = 0;
 volatile int32_t rightCountGlobal = 0;
+IMU_Data_t *imu;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,6 +134,7 @@ static void MX_TIM1_Init(void);
 static void MX_TIM9_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM5_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -179,6 +183,11 @@ void MOTOR_Test(){
     HAL_Delay(2000);  // ͣ2��
 };
 
+void HC05_OnByteReceived(uint8_t byte)
+{
+    // 示例：收到的字符原样回发
+    HAL_UART_Transmit(&huart3, &byte, 1, HAL_MAX_DELAY);
+}
 /* USER CODE END 0 */
 
 /**
@@ -219,6 +228,7 @@ int main(void)
   MX_TIM9_Init();
   MX_TIM2_Init();
   MX_TIM5_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 	cliff_thresholds[0] = 200;
   cliff_thresholds[1] = 200;
@@ -231,6 +241,8 @@ int main(void)
 	JY901S_Init(&huart2);
 	CliffSensor_Init();
 	A4950_Init();
+	HC05_Init(&huart3);
+
 	// 绑定并启动编码器接口
   Encoder_Init(&encL, &htim2);
   Encoder_Init(&encR, &htim5);
@@ -243,7 +255,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-		//IMU_Data_t *imu = JY901S_GetData();
+		imu = JY901S_GetData();
 		
 		
 		/*
@@ -278,12 +290,12 @@ int main(void)
 				LED_Test();
 				
 				//MOTOR_Test();
-				A4950_SetLeft(A4950_PWM_MAX *2 / 3);
-				A4950_SetRight(-A4950_PWM_MAX / 3);
-				leftCountGlobal  = Encoder_GetCount(&encL);
-        rightCountGlobal = Encoder_GetCount(&encR);
-				flag1++;//���м��
-				HAL_Delay(100);
+//				A4950_SetLeft(A4950_PWM_MAX *2 / 3);
+//				A4950_SetRight(-A4950_PWM_MAX / 3);
+//				leftCountGlobal  = Encoder_GetCount(&encL);
+//        rightCountGlobal = Encoder_GetCount(&encR);
+//				flag1++;//���м��
+//				HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -760,6 +772,39 @@ static void MX_USART2_UART_Init(void)
 }
 
 /**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 9600;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -843,11 +888,15 @@ static void MX_GPIO_Init(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2) {
-				JY901S_UART_RxHandler(jy_rx_buf);
-        HAL_UART_Receive_IT(&huart2, jy_rx_buf, 11); 
-				flag2++;
+        JY901S_UART_RxHandler(jy_rx_buf);
+        HAL_UART_Receive_IT(&huart2, jy_rx_buf, 11);
+    } else if (huart->Instance == USART3) {
+        uint8_t byte = *HC05_GetRxBytePtr();
+        HC05_UART_RxHandler(byte);
     }
 }
+
+
 
 
 /* USER CODE END 4 */
