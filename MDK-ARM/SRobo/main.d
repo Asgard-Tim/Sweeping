@@ -35,6 +35,7 @@ srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 srobo\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 srobo\main.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+srobo\main.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 srobo\main.o: ../app/LED/led.h
 srobo\main.o: ../app/KEY/key.h
 srobo\main.o: ../app/JY901S/jy901s.h
@@ -44,3 +45,4 @@ srobo\main.o: ../app/crash_sensor/crash_sensor.h
 srobo\main.o: ../app/A4950/A4950.h
 srobo\main.o: ../app/encoder/encoder.h
 srobo\main.o: ../app/hc05/hc05.h
+srobo\main.o: ..\app\PID\PID.h

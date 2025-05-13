@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include <math.h>
 #include "led.h"
 #include "key.h"
 #include "jy901s.h"
@@ -30,6 +31,7 @@
 #include "A4950.h"
 #include "encoder.h"
 #include "hc05.h"
+#include "PID.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +70,7 @@ Key_HandleTypeDef key[] = {
     {   // KEY0(PD11)
         .GPIOx = GPIOD,
         .GPIO_Pin = GPIO_PIN_11,
-        .ActiveMode = KEY_ACTIVE_LOW  // ????????
+        .ActiveMode = KEY_ACTIVE_LOW  
     },
     {   // KEY1(PE15)
         .GPIOx = GPIOE,
@@ -77,19 +79,11 @@ Key_HandleTypeDef key[] = {
     }
 };
 
-//encoder
-Encoder_HandleTypeDef encL, encR;
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define ROUND_TIME 100.0f
 #define TX_BUF_SIZE 128
-#define MOTOR_REDUCTION_RATIO 63  //Motor reduction ratio
-#define PULSE_PRE_ROUND 20 //The number of pulses per turn of the encoder
-#define RADIUS_OF_TIRE 34 //Tire radius, in millimeters
-#define CIRCLES_OF_TIRE RADIUS_OF_TIRE * 2 * 3.14
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -112,6 +106,9 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart1_tx;
 
+//encoder
+Encoder_HandleTypeDef encL, encR;
+
 /* USER CODE BEGIN PV */
 uint8_t jy_rx_buf[11];
 uint8_t uart1_tx_buf[TX_BUF_SIZE];
@@ -119,33 +116,17 @@ uint16_t sensor_vals[CLIFF_SENSOR_COUNT];
 static uint32_t key0_last_tick = 0;
 static uint32_t key1_last_tick = 0;
 int rounds = 0;
-volatile int32_t leftCountGlobal  = 0;
-volatile int32_t rightCountGlobal = 0;
-volatile int32_t leftCount  = 0;
-volatile int32_t rightCount = 0;
-float leftSpeed = 0.0f;
-float rightSpeed = 0.0f;
-float time = ROUND_TIME / 1000.0f;
-float target_speed_left = 10.0f;
-float kp_left = 0.5f;
-float ki_left = 0.1f;
-float kd_left = 0.005f;
-float previous_error_left = 0.0f;
-float error_left = 0.0f;
-float integral_left = 0.0f;
-float derivative_left = 0.0f;
-float pid_output_left = 0.0f;
-float target_speed_right = 10.0f;
-float kp_right = 0.5f;
-float ki_right = 0.1f;
-float kd_right = 0.005f;
-float previous_error_right = 0.0f;
-float error_right = 0.0f;
-float integral_right = 0.0f;
-float derivative_right = 0.0f;
-float pid_output_right = 0.0f;
 IMU_Data_t *imu;
 int flag = 0;
+float target_speed_left = 0.0f;
+float target_speed_right = 0.0f;
+float x = 0.0f;
+float y = 0.0f;
+float yaw_deg = 0.0f;
+float left_speed = 0.0f;
+float right_speed = 0.0f;
+float distance = 0;
+float memory_deg = 0.0f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -228,57 +209,14 @@ void SENSOR_Test(){
 		}
 
 		HAL_Delay(50);
-}
-	
-
-void PID_Control_Left(void){
-		error_left = target_speed_left - leftSpeed;
-		
-		integral_left += error_left;
-		if (integral_left > 99.0f)
-			integral_left = 99.0f;
-		else if (integral_left < - 99.0f)
-			integral_left = -99.0f;
-		
-		derivative_left = error_left - previous_error_left;
-		
-		pid_output_left = kp_left * error_left + ki_left * integral_left + kd_left * derivative_left;
-		
-		if (pid_output_left > 99.0f)
-			pid_output_left = 99.0f;
-		else if (pid_output_left < - 99.0f)
-			pid_output_left = -99.0f;
-		
-		previous_error_left = error_left;
-}
-
-void PID_Control_Right(void){
-		error_right = target_speed_right - rightSpeed;
-		
-		integral_right += error_right;
-		if (integral_right > 99.0f)
-			integral_right = 99.0f;
-		else if (integral_right < - 99.0f)
-			integral_right = -99.0f;
-		
-		derivative_right = error_right - previous_error_right;
-		
-		pid_output_right = kp_right * error_right + ki_right * integral_right + kd_right * derivative_right;
-		
-		if (pid_output_right > 99.0f)
-			pid_output_right = 99.0f;
-		else if (pid_output_right < - 99.0f)
-			pid_output_right = -99.0f;
-		
-		previous_error_right = error_right;
-}
-	
+}	
 
 void HC05_OnByteReceived(uint8_t byte)
 {
     // 示例：收到的字符原样回发
     HAL_UART_Transmit(&huart3, &byte, 1, HAL_MAX_DELAY);
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -340,17 +278,13 @@ int main(void)
 	// 清零计数
   Encoder_Reset(&encL);
   Encoder_Reset(&encR);
-	
-	A4950_SetLeft(A4950_PWM_MAX * 0.7);
-	A4950_SetRight(A4950_PWM_MAX * 0.7);
-	HAL_Delay(ROUND_TIME);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {
-		// 更新按键状态（需定期调用）
+  {	
+		// 更新按键状态
     Key_Update(&key[0]); // 检测KEY0
     Key_Update(&key[1]); // 检测KEY1
 
@@ -365,45 +299,99 @@ int main(void)
 
 		if (flag == 0){
 			// 接收上位机指令
+			target_speed_left = 10.0f;
+			target_speed_right = 10.0f;
+			distance = 100.0f;
+			if (y > distance - target_speed_left)
+			{
+				flag = 2;
+				memory_deg = yaw_deg;
+			}
 			
 			// 检测悬崖传感器
 			
 			// 检测碰撞传感器
 			
-			// 运动
-			// 计算当前速度
-			leftCount = leftCountGlobal;
-			leftCountGlobal  = Encoder_GetCount(&encL);
-			leftCount -= leftCountGlobal;
-			leftSpeed = leftCount / time / PULSE_PRE_ROUND / MOTOR_REDUCTION_RATIO * CIRCLES_OF_TIRE / 10; // cm/s
-			
-			rightCount = rightCountGlobal;
-			rightCountGlobal = - Encoder_GetCount(&encR);
-			rightCount -= rightCountGlobal;
-			rightSpeed = rightCount / time / PULSE_PRE_ROUND / MOTOR_REDUCTION_RATIO * CIRCLES_OF_TIRE / 10; // cm/s
-			
+			// 运动		
+			// 编码器测速
+			left_speed = getLeftSpeed(&encL);
+			right_speed = getRightSpeed(&encR);
 			// PID控制
-			PID_Control_Left();
-			PID_Control_Right();
-			
-			// 驱动电机
-			//A4950_SetLeft(A4950_PWM_MAX * 0.7);
-			//A4950_SetRight(A4950_PWM_MAX * 0.7);
-			A4950_SetLeft(pid_output_left * 7);
-			A4950_SetRight(pid_output_right * 7);
+			PID_Control_Left(target_speed_left);
+			PID_Control_Right(target_speed_right);
 			
 			// 计算位姿
 			imu = JY901S_GetData();
+			yaw_deg  = imu->yaw; // 直接获取偏角
+			// yaw_deg += imu->gz * (ROUND_TIME / 1000.0f); // 增量法获取偏角
+			if (left_speed < target_speed_left - 1.0f)
+				y += left_speed * ROUND_TIME / 1000.0f; // 通过轮速获取位移
+			else
+				y += (left_speed * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
+			// y += sqrt(imu->ax * imu->ax + imu->ay * imu->ay) * (ROUND_TIME / 1000.0f) * (ROUND_TIME / 1000.0f) * 200; //通过imu加速度积分获取位移
+			// x ++ ;
 			
 			// 发送实时位姿和速度给上位机
-			
+			HC05_SendData(100.0f, -200.0f, 90.5f, 75.0f, -80.0f);
+			// HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
 		
 			rounds++;
 		}
-		else{
+		else if (flag == 1){ // 停止
 			A4950_SetLeft(0);
 			A4950_SetRight(0);
 		}
+		else if (flag == 2){ // 左转
+			target_speed_left = -5.0f;
+			target_speed_right = 5.0f;
+			
+			// 运动		
+			// 编码器测速
+			left_speed = getLeftSpeed(&encL);
+			right_speed = getRightSpeed(&encR);
+			// PID控制
+			PID_Control_Left(target_speed_left);
+			PID_Control_Right(target_speed_right);
+			
+			yaw_deg  = imu->yaw; // 直接获取偏角
+			
+			if ((yaw_deg + fabs(imu->gy) > 85 + memory_deg) || ((yaw_deg + fabs(imu->gy) >= memory_deg - 275) && (yaw_deg < -95)))
+			{
+				flag = 3;
+				memory_deg = yaw_deg;
+			}
+			
+			// 发送实时位姿和速度给上位机
+			HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
+		
+			rounds++;
+		}
+		else if (flag == 3){ // 右转
+			target_speed_left = 5.0f;
+			target_speed_right = -5.0f;
+			
+			// 运动		
+			// 编码器测速
+			left_speed = getLeftSpeed(&encL);
+			right_speed = getRightSpeed(&encR);
+			// PID控制
+			PID_Control_Left(target_speed_left);
+			PID_Control_Right(target_speed_right);
+			
+			yaw_deg  = imu->yaw; // 直接获取偏角
+			
+			if ((yaw_deg - fabs(imu->gy) <= memory_deg - 85) || ((yaw_deg - fabs(imu->gy) <= memory_deg + 275) && (yaw_deg > 95)))
+			{
+				flag = 1;
+				memory_deg = yaw_deg;
+				y = 0.0f;
+			}
+			
+			// 发送实时位姿和速度给上位机
+			HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
+		
+			rounds++;
+		}		
 			
 		HAL_Delay(ROUND_TIME);
     /* USER CODE END WHILE */

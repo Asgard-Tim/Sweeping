@@ -1,25 +1,39 @@
-#ifndef HC05_H
-#define HC05_H
+#ifndef __HC05_H
+#define __HC05_H
 
 #include "stm32f4xx_hal.h"
 #include <stdint.h>
+#include "main.h"
 
-/**
- * @brief ³õÊ¼»¯ HC-05£¨¿ªÊ¼Ê×´Î½ÓÊÕ£©
- * @param huart UART ¾ä±ú£¨ÀıÈç &huart3£©
- */
+// åè®®æ ‡è¯†å®šä¹‰
+#define FRAME_HEADER        0xAA
+#define CONTROL_CMD_ID      0x01   // æ–°å¢æ§åˆ¶æŒ‡ä»¤æ ‡è¯†
+#define FRAME_END           0x55
+
+// æ•°æ®å¸§ç»“æ„å®šä¹‰ï¼ˆä¿æŒå‘ä¸‹å…¼å®¹ï¼‰
+#pragma pack(push, 1)
+typedef struct {
+    int16_t pos_x;      // Xåæ ‡ (-999~999)
+    int16_t pos_y;      // Yåæ ‡ (-999~999)
+    uint16_t yaw;       // è½¬è§’ (0-3599ï¼Œå®é™…å€¼*10)
+    int8_t  left_speed; // å·¦è½®é€Ÿåº¦ (-100~100)
+    int8_t  right_speed;// å³è½®é€Ÿåº¦ (-100~100)
+} Robot_Data_t;
+#pragma pack(pop)
+
+// ç”µæœºæ§åˆ¶å›è°ƒå£°æ˜ï¼ˆç”¨æˆ·éœ€åœ¨main.cå®ç°ï¼‰
+__weak void Motor_SetSpeed(int8_t left, int8_t right);
+
+/* è“ç‰™æ¨¡å—åˆå§‹åŒ– */
 void HC05_Init(UART_HandleTypeDef *huart);
 
-/**
- * @brief ÔÚ HAL_UART_RxCpltCallback ÖĞµ÷ÓÃ´Ëº¯Êı£¬´¦ÀíÊÕµ½µÄÒ»¸ö×Ö½Ú
- */
+/* æ•°æ®å‘é€æ¥å£ï¼ˆä¿æŒåŸæœ‰åŠŸèƒ½ï¼‰ */
+void HC05_SendData(float x, float y, float yaw_deg, float left, float right);
+
+/* æ¥æ”¶ä¸­æ–­å¤„ç†å‡½æ•° */
 void HC05_UART_RxHandler(uint8_t byte);
 
-/**
- * @brief ÓÃ»§×Ô¶¨ÒåµÄ´¦Àíº¯Êı£¨Èõ¶¨Òå£¬¿ÉÖØĞ´£©
- */
-__weak void HC05_OnByteReceived(uint8_t byte);
-
+/* è·å–æ¥æ”¶å­—èŠ‚æŒ‡é’ˆï¼ˆç”¨äºHALåº“å›è°ƒï¼‰ */
 uint8_t* HC05_GetRxBytePtr(void);
 
 #endif

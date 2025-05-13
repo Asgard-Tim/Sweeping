@@ -34,3 +34,6 @@ srobo\hc05.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 srobo\hc05.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 srobo\hc05.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 srobo\hc05.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+srobo\hc05.o: ../Core/Inc/main.h
+srobo\hc05.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+srobo\hc05.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
