@@ -20,6 +20,10 @@ typedef struct {
     int8_t  right_speed;// 右轮速度 (-100~100)
 } Robot_Data_t;
 #pragma pack(pop)
+extern uint8_t hc05_rx_byte;
+extern int8_t hc05_speed_left;
+extern int8_t hc05_speed_right;
+extern uint8_t hc05_warning_flag;
 
 // 电机控制回调声明（用户需在main.c实现）
 __weak void Motor_SetSpeed(int8_t left, int8_t right);
@@ -35,5 +39,7 @@ void HC05_UART_RxHandler(uint8_t byte);
 
 /* 获取接收字节指针（用于HAL库回调） */
 uint8_t* HC05_GetRxBytePtr(void);
+
+void HC05_CheckTimeout(void);
 
 #endif

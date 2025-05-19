@@ -84,6 +84,7 @@ Key_HandleTypeDef key[] = {
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TX_BUF_SIZE 128
+#define M_PI 3.14159265358979323846
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -117,7 +118,6 @@ static uint32_t key0_last_tick = 0;
 static uint32_t key1_last_tick = 0;
 int rounds = 0;
 IMU_Data_t *imu;
-int flag = 0;
 float target_speed_left = 0.0f;
 float target_speed_right = 0.0f;
 float x = 0.0f;
@@ -125,8 +125,10 @@ float y = 0.0f;
 float yaw_deg = 0.0f;
 float left_speed = 0.0f;
 float right_speed = 0.0f;
-float distance = 0;
 float memory_deg = 0.0f;
+float distance = 0.0f;
+uint8_t mask;
+uint8_t crash_status;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -155,66 +157,15 @@ void LED_Init_All(){
 	LED_Init(&LED3); 
 };
 
-void LED_Test(){
-		LED_On(&LED0);
-		LED_On(&LED1);
-		LED_On(&LED2);
-		LED_On(&LED3);
-		HAL_Delay (500);
-	
-		LED_Off(&LED0);
-		LED_Off(&LED1);
-		LED_Off(&LED2);
-		LED_Off(&LED3);
-		HAL_Delay (500);
-};
-
-void MOTOR_Test(){
-    A4950_SetLeft(A4950_PWM_MAX *2 / 3);
-
-    A4950_SetRight(- A4950_PWM_MAX / 3);
-
-    HAL_Delay(2000);
-
-    A4950_Brake();
-
-    HAL_Delay(500);
-
-    A4950_SetLeft(0);
-    A4950_SetRight(0);
-
-    HAL_Delay(2000);
-};
-
-void SENSOR_Test(){
-		uint8_t mask = CliffSensor_GetMask();
-		CliffSensor_GetValues(sensor_vals);
-
-		LED_Off(&LED0);
-		LED_Off(&LED1);
-		LED_Off(&LED2);
-		LED_Off(&LED3);
-
-		if (mask == 0) {
-				LED_Toggle(&LED0);
-				LED_Toggle(&LED1);
-				LED_Toggle(&LED2);
-				LED_Toggle(&LED3);
-				HAL_Delay(200);
-		} else {
-				if (mask & CLIFF_1) LED_On(&LED0);
-				if (mask & CLIFF_2) LED_On(&LED1);
-				if (mask & CLIFF_3) LED_On(&LED2);
-				if (mask & CLIFF_4) LED_On(&LED3);
-		}
-
-		HAL_Delay(50);
-}	
-
 void HC05_OnByteReceived(uint8_t byte)
 {
     // 示例：收到的字符原样回发
     HAL_UART_Transmit(&huart3, &byte, 1, HAL_MAX_DELAY);
+}
+
+void Motor_SetSpeed(int8_t left, int8_t right) {
+    target_speed_left = (float)left;
+    target_speed_right = (float)right;
 }
 
 /* USER CODE END 0 */
@@ -278,121 +229,100 @@ int main(void)
 	// 清零计数
   Encoder_Reset(&encL);
   Encoder_Reset(&encR);
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {	
-		// 更新按键状态
-    Key_Update(&key[0]); // 检测KEY0
-    Key_Update(&key[1]); // 检测KEY1
-
-    // 检测KEY0是否刚刚按下（下降沿触发）
-    if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED)
-        flag = 1; 
-
-		// 测试函数
-		//LED_Test();
-		//MOTOR_Test();
-		//SENSOR_Test();	
-
-		if (flag == 0){
-			// 接收上位机指令
-			target_speed_left = 10.0f;
-			target_speed_right = 10.0f;
-			distance = 100.0f;
-			if (y > distance - target_speed_left)
-			{
-				flag = 2;
-				memory_deg = yaw_deg;
-			}
-			
-			// 检测悬崖传感器
-			
-			// 检测碰撞传感器
-			
-			// 运动		
-			// 编码器测速
-			left_speed = getLeftSpeed(&encL);
-			right_speed = getRightSpeed(&encR);
-			// PID控制
-			PID_Control_Left(target_speed_left);
-			PID_Control_Right(target_speed_right);
-			
-			// 计算位姿
-			imu = JY901S_GetData();
-			yaw_deg  = imu->yaw; // 直接获取偏角
-			// yaw_deg += imu->gz * (ROUND_TIME / 1000.0f); // 增量法获取偏角
-			if (left_speed < target_speed_left - 1.0f)
-				y += left_speed * ROUND_TIME / 1000.0f; // 通过轮速获取位移
-			else
-				y += (left_speed * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
-			// y += sqrt(imu->ax * imu->ax + imu->ay * imu->ay) * (ROUND_TIME / 1000.0f) * (ROUND_TIME / 1000.0f) * 200; //通过imu加速度积分获取位移
-			// x ++ ;
-			
-			// 发送实时位姿和速度给上位机
-			HC05_SendData(100.0f, -200.0f, 90.5f, 75.0f, -80.0f);
-			// HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
-		
-			rounds++;
+		// 接收上位机指令
+		if (hc05_warning_flag == 2) // 急停
+		{
+			target_speed_left = 0;
+			target_speed_right = 0;
 		}
-		else if (flag == 1){ // 停止
-			A4950_SetLeft(0);
-			A4950_SetRight(0);
+		else if (hc05_warning_flag == 1) // 速度赋值
+		{
+			target_speed_left = hc05_speed_left;
+			target_speed_right = hc05_speed_right;
 		}
-		else if (flag == 2){ // 左转
-			target_speed_left = -5.0f;
-			target_speed_right = 5.0f;
-			
-			// 运动		
-			// 编码器测速
-			left_speed = getLeftSpeed(&encL);
-			right_speed = getRightSpeed(&encR);
-			// PID控制
-			PID_Control_Left(target_speed_left);
-			PID_Control_Right(target_speed_right);
-			
-			yaw_deg  = imu->yaw; // 直接获取偏角
-			
-			if ((yaw_deg + fabs(imu->gy) > 85 + memory_deg) || ((yaw_deg + fabs(imu->gy) >= memory_deg - 275) && (yaw_deg < -95)))
-			{
-				flag = 3;
-				memory_deg = yaw_deg;
-			}
-			
-			// 发送实时位姿和速度给上位机
-			HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
+		hc05_warning_flag = 0;
 		
-			rounds++;
-		}
-		else if (flag == 3){ // 右转
-			target_speed_left = 5.0f;
-			target_speed_right = -5.0f;
-			
-			// 运动		
-			// 编码器测速
-			left_speed = getLeftSpeed(&encL);
-			right_speed = getRightSpeed(&encR);
-			// PID控制
-			PID_Control_Left(target_speed_left);
-			PID_Control_Right(target_speed_right);
-			
-			yaw_deg  = imu->yaw; // 直接获取偏角
-			
-			if ((yaw_deg - fabs(imu->gy) <= memory_deg - 85) || ((yaw_deg - fabs(imu->gy) <= memory_deg + 275) && (yaw_deg > 95)))
+		// 检测悬崖传感器
+		mask = CliffSensor_GetMask();
+		CliffSensor_GetValues(sensor_vals);
+		if (mask == 0)
+			LED_On(&LED0);
+		else 
+		{
+			if (mask & CLIFF_1) 
 			{
-				flag = 1;
-				memory_deg = yaw_deg;
-				y = 0.0f;
+				target_speed_left = -target_speed_left;
+				target_speed_right = -target_speed_right;
 			}
-			
-			// 发送实时位姿和速度给上位机
-			HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
-		
-			rounds++;
+			if (mask & CLIFF_2) 
+			{
+				target_speed_left = -target_speed_left;
+				target_speed_right = -target_speed_right;
+			}
+			if (mask & CLIFF_3) 
+			{
+				target_speed_left = -target_speed_left;
+				target_speed_right = -target_speed_right;
+			}
+			if (mask & CLIFF_4)
+			{
+				target_speed_left = -target_speed_left;
+				target_speed_right = -target_speed_right;
+			}
 		}		
-			
+
+		// 检测碰撞传感器
+		crash_status = CrashSensor_GetStatus();
+		if (crash_status != 0) {
+				target_speed_left = -target_speed_left;
+				target_speed_right = -target_speed_right;
+		}
+		
+		// 运动		
+		// 编码器测速
+		left_speed = getLeftSpeed(&encL);
+		right_speed = getRightSpeed(&encR);
+		// PID控制
+		PID_Control_Left(target_speed_left);
+		PID_Control_Right(target_speed_right);
+		
+		// 计算位姿
+		imu = JY901S_GetData();
+		// 获取初始位姿偏角
+		if (rounds == 10)
+			memory_deg  = imu->yaw;	
+		yaw_deg  = imu->yaw - memory_deg; // 直接获取偏角			
+		// yaw_deg += imu->gz * (ROUND_TIME / 1000.0f); // 增量法获取偏角
+		if (left_speed < target_speed_left - 1.0f)
+			distance = left_speed * ROUND_TIME / 1000.0f; // 通过轮速获取位移
+		else
+			distance = (left_speed * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
+		// distance += sqrt(imu->ax * imu->ax + imu->ay * imu->ay) * (ROUND_TIME / 1000.0f) * (ROUND_TIME / 1000.0f) * 200; //通过imu加速度积分获取位移
+		// 若纯旋转，不发生位移
+		if (target_speed_left == -target_speed_right)
+			distance = 0;
+		x += distance * sin(-yaw_deg * M_PI / 180.0);
+		y += distance * cos(-yaw_deg * M_PI / 180.0);
+		
+		// 发送实时位姿和速度给上位机
+		HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
+	
+		rounds++;
+
+    // 添加协议超时检查
+    static uint32_t last_protocol_check = 0;
+    if(HAL_GetTick() - last_protocol_check > 100) {
+        HC05_CheckTimeout();
+        last_protocol_check = HAL_GetTick();
+    }
+
 		HAL_Delay(ROUND_TIME);
     /* USER CODE END WHILE */
 

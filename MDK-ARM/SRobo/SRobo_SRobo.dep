@@ -1,7 +1,7 @@
 Dependencies for Project 'SRobo', Target 'SRobo': (DO NOT MODIFY !)
 F (startup_stm32f407xx.s)(0x6818F210)(--cpu Cortex-M4.fp -g --apcs=interwork -I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include--pd "__UVISION_VERSION SETA 524" --pd "_RTE_ SETA 1" --pd "STM32F407xx SETA 1"--list startup_stm32f407xx.lst --xref -o srobo\startup_stm32f407xx.o --depend srobo\startup_stm32f407xx.d)
-F (../Core/Src/main.c)(0x68226633)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\main.o --omf_browse srobo\main.crf --depend srobo\main.d)
-I (../Core/Inc/main.h)(0x6819C367)
+F (../Core/Src/main.c)(0x682B6BFC)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\main.o --omf_browse srobo\main.crf --depend srobo\main.d)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -45,10 +45,10 @@ I (F:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x588B8344)
 I (../app/crash_sensor/crash_sensor.h)(0x6818F210)
 I (../app/A4950/A4950.h)(0x6818F210)
 I (../app/encoder/encoder.h)(0x6819C32C)
-I (../app/hc05/hc05.h)(0x682246EF)
+I (../app/hc05/hc05.h)(0x682B58FE)
 I (..\app\PID\PID.h)(0x68225035)
 F (../Core/Src/stm32f4xx_it.c)(0x6818F210)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\stm32f4xx_it.o --omf_browse srobo\stm32f4xx_it.crf --depend srobo\stm32f4xx_it.d)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -84,7 +84,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_it.h)(0x6818F210)
 F (../Core/Src/stm32f4xx_hal_msp.c)(0x6818F210)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\stm32f4xx_hal_msp.o --omf_browse srobo\stm32f4xx_hal_msp.crf --depend srobo\stm32f4xx_hal_msp.d)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -836,7 +836,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x6818F210)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 F (..\app\KEY\key.h)(0x6818F210)()
 F (..\app\A4950\A4950.c)(0x6818F210)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\a4950.o --omf_browse srobo\a4950.crf --depend srobo\a4950.d)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
@@ -876,7 +876,7 @@ I (..\app\A4950\A4950.h)(0x6818F210)
 F (..\app\A4950\A4950.h)(0x6818F210)()
 F (..\app\JY901S\JY901S.c)(0x6818F210)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\jy901s.o --omf_browse srobo\jy901s.crf --depend srobo\jy901s.d)
 I (..\app\JY901S\jy901s.h)(0x6818F210)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -915,7 +915,7 @@ F (..\app\cliff_sensor\cliff_sensor.c)(0x6818F210)(--c99 -c --cpu Cortex-M4.fp -
 I (..\app\cliff_sensor\cliff_sensor.h)(0x6818F210)
 I (F:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x588B8344)
 I (F:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x588B8344)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -953,7 +953,7 @@ F (..\app\crash_sensor\crash_sensor.c)(0x6818F210)(--c99 -c --cpu Cortex-M4.fp -
 I (..\app\crash_sensor\crash_sensor.h)(0x6818F210)
 I (F:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x588B8344)
 I (F:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x588B8344)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -1023,8 +1023,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x6818F210)
 F (..\app\encoder\encoder.h)(0x6819C32C)()
-F (..\app\hc05\hc05.c)(0x68224A57)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\hc05.o --omf_browse srobo\hc05.crf --depend srobo\hc05.d)
-I (..\app\hc05\hc05.h)(0x682246EF)
+F (..\app\hc05\hc05.c)(0x682B593B)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\hc05.o --omf_browse srobo\hc05.crf --depend srobo\hc05.d)
+I (..\app\hc05\hc05.h)(0x682B58FE)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
@@ -1058,13 +1058,13 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x6818F210)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (F:\Keil_v5\ARM\ARMCC\include\string.h)(0x588B8344)
 I (F:\Keil_v5\ARM\ARMCC\include\math.h)(0x588B8344)
-F (..\app\hc05\hc05.h)(0x682246EF)()
+F (..\app\hc05\hc05.h)(0x682B58FE)()
 F (..\app\PID\PID.c)(0x68220A3D)(--c99 -c --cpu Cortex-M4.fp -g -O0 --apcs=interwork --split_sections -I ../Core/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../app/LED -I ../app/KEY -I ../app/A4950 -I ../app/JY901S -I ../app/retarget -I ../app/cliff_sensor -I ../app/crash_sensor -I ../app/encoder -I ../app/hc05 -I ..\app\PID-I.\RTE\_SRobo-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.6.0\CMSIS\Core\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.15.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="524" -D_RTE_ -DSTM32F407xx -DUSE_HAL_DRIVER -DSTM32F407xx-o srobo\pid.o --omf_browse srobo\pid.crf --depend srobo\pid.d)
 I (..\app\PID\PID.h)(0x68225035)
-I (../Core/Inc/main.h)(0x6819C367)
+I (../Core/Inc/main.h)(0x682B3BF2)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x6818F210)
 I (../Core/Inc/stm32f4xx_hal_conf.h)(0x6818F210)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h)(0x6818F210)
