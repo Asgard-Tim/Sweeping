@@ -4,41 +4,41 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CLIFF_SENSOR_COUNT 4  // 悬崖传感器数量
+#define CLIFF_SENSOR_COUNT 4
+#define BT15V_SENSOR_COUNT 1
+#define TOTAL_ADC_CHANNELS (CLIFF_SENSOR_COUNT + BT15V_SENSOR_COUNT)
 
-// 悬崖传感器掩码定义（用于按位标识传感器状态）
-#define CLIFF_1   (1U << 0)   // 第1个传感器
-#define CLIFF_2   (1U << 1)   // 第2个传感器
-#define CLIFF_3   (1U << 2)   // 第3个传感器
-#define CLIFF_4   (1U << 3)   // 第4个传感器
+// 悬崖传感器掩码定义
+#define CLIFF_1   (1U << 0)
+#define CLIFF_2   (1U << 1)
+#define CLIFF_3   (1U << 2)
+#define CLIFF_4   (1U << 3)
 
-// 悬崖传感器的触发阈值数组（由 .c 文件中定义）
 extern uint16_t cliff_thresholds[CLIFF_SENSOR_COUNT];
 
 /**
- * @brief 悬崖传感器初始化函数，配置 TIM3 和 ADC + DMA
+ * @brief 初始化悬崖传感器和BT15V电压采样，启动ADC+DMA
  */
 void CliffSensor_Init(void);
 
 /**
- * @brief  获取当前所有悬崖传感器的 ADC 数值
- * @param  out_values 指向外部数组的指针，存放每个传感器的 ADC 读取值（4个）
+ * @brief 获取当前悬崖传感器ADC值（4个）
  */
 void CliffSensor_GetValues(uint16_t *out_values);
 
 /**
- * @brief  判断指定编号的传感器是否检测到悬崖
- * @param  sensor_index 传感器索引（0~3）
- * @retval true 表示检测到悬崖，false 表示正常
+ * @brief 判断某个悬崖传感器是否检测到悬崖
  */
 bool CliffSensor_IsCliff(uint8_t sensor_index);
 
 /**
- * @brief  获取当前所有检测到悬崖的传感器掩码
- * @retval 0 表示未检测到悬崖  
- *         例如返回 CLIFF_1，表示第1个传感器触发；  
- *         返回 CLIFF_1 | CLIFF_2 表示多个传感器同时触发
+ * @brief 获取所有悬崖传感器检测结果掩码
  */
 uint8_t CliffSensor_GetMask(void);
+
+/**
+ * @brief 获取BT15V电压采样值（单位：伏特）
+ */
+float BT15V_GetVoltage(void);
 
 #endif // CLIFF_SENSOR_H

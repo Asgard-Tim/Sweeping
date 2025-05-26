@@ -85,6 +85,7 @@ Key_HandleTypeDef key[] = {
 /* USER CODE BEGIN PD */
 #define TX_BUF_SIZE 128
 #define M_PI 3.14159265358979323846
+#define CONTROL_DEG 5
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -107,9 +108,6 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart1_tx;
 
-//encoder
-Encoder_HandleTypeDef encL, encR;
-
 /* USER CODE BEGIN PV */
 uint8_t jy_rx_buf[11];
 uint8_t uart1_tx_buf[TX_BUF_SIZE];
@@ -127,8 +125,15 @@ float left_speed = 0.0f;
 float right_speed = 0.0f;
 float memory_deg = 0.0f;
 float distance = 0.0f;
+float distance_all = 0.0f;
 uint8_t mask;
 uint8_t crash_status;
+float vol;
+uint8_t robot_mode = 0;
+int crash_flag = 0;
+float turn_start_deg = 0.0f;
+//encoder
+Encoder_HandleTypeDef encL, encR;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -166,6 +171,14 @@ void HC05_OnByteReceived(uint8_t byte)
 void Motor_SetSpeed(int8_t left, int8_t right) {
     target_speed_left = (float)left;
     target_speed_right = (float)right;
+}
+
+void turning_left(){
+	target_speed_left = -5.0f;
+	target_speed_right = 5.0f;
+	imu = JY901S_GetData();
+	if ((imu->yaw > (CONTROL_DEG + turn_start_deg)) || ((imu->yaw > (turn_start_deg + CONTROL_DEG - 360)) && (imu->yaw < CONTROL_DEG - 180)))
+		crash_flag = 0;
 }
 
 /* USER CODE END 0 */
@@ -236,53 +249,89 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {	
-		// 接收上位机指令
-		if (hc05_warning_flag == 2) // 急停
-		{
-			target_speed_left = 0;
-			target_speed_right = 0;
-		}
-		else if (hc05_warning_flag == 1) // 速度赋值
-		{
-			target_speed_left = hc05_speed_left;
-			target_speed_right = hc05_speed_right;
-		}
-		hc05_warning_flag = 0;
+		// 获取电量（0-100）
+		vol = BT15V_GetVoltage();
+
+    // 从上位机 获取机器人运行模式
+    // 01 遥控模式/清扫模式
+    // 02 自主建图模式
+    robot_mode = HC05_GetControlMode();
 		
+    if (robot_mode == 1) {
+			// 遥控模式
+      // 处理遥控速度值
+      if (hc05_warning_flag == 2) // 急停
+      {
+        target_speed_left = 0;
+        target_speed_right = 0;
+      }
+      else if (hc05_warning_flag == 1) // 速度赋值
+      {
+        target_speed_left = hc05_speed_left;
+        target_speed_right = hc05_speed_right;
+      }
+      hc05_warning_flag = 0;
+
+			// 检测碰撞传感器
+			crash_status = CrashSensor_GetStatus();
+			if (crash_status != 0) {
+				if (crash_flag == 0) {
+					target_speed_left = -target_speed_left;
+					target_speed_right = -target_speed_right;
+					crash_flag = 1;
+				}
+			}
+			else
+				crash_flag = 0;
+    }
+    else if (robot_mode == 2) {
+			// 扫图模式
+			// 检测碰撞传感器
+			crash_status = CrashSensor_GetStatus();
+			// 向前移动直到检测到碰撞
+			if (crash_status == 0){
+				if (crash_flag == 0){
+					target_speed_left = 10.0f;
+					target_speed_right = 10.0f;
+				}
+				else if (crash_flag == 1)
+					turning_left();
+			}
+			else{
+				imu = JY901S_GetData();
+				if (crash_flag == 0){
+					turn_start_deg = imu->yaw;
+					target_speed_left = -target_speed_left;
+					target_speed_right = -target_speed_right;
+					crash_flag = 1;
+				}
+			}
+    }
+
 		// 检测悬崖传感器
 		mask = CliffSensor_GetMask();
 		CliffSensor_GetValues(sensor_vals);
 		if (mask == 0)
 			LED_On(&LED0);
-		else 
+		else if(mask & CLIFF_1) 
 		{
-			if (mask & CLIFF_1) 
-			{
-				target_speed_left = -target_speed_left;
-				target_speed_right = -target_speed_right;
-			}
-			if (mask & CLIFF_2) 
-			{
-				target_speed_left = -target_speed_left;
-				target_speed_right = -target_speed_right;
-			}
-			if (mask & CLIFF_3) 
-			{
-				target_speed_left = -target_speed_left;
-				target_speed_right = -target_speed_right;
-			}
-			if (mask & CLIFF_4)
-			{
-				target_speed_left = -target_speed_left;
-				target_speed_right = -target_speed_right;
-			}
-		}		
-
-		// 检测碰撞传感器
-		crash_status = CrashSensor_GetStatus();
-		if (crash_status != 0) {
-				target_speed_left = -target_speed_left;
-				target_speed_right = -target_speed_right;
+			target_speed_left = -target_speed_left;
+			target_speed_right = -target_speed_right;
+		}
+		else if (mask & CLIFF_2) 
+		{
+			target_speed_left = -target_speed_left;
+			target_speed_right = -target_speed_right;
+		}
+		else if (mask & CLIFF_3) 
+		{
+			target_speed_left = -target_speed_left;
+			target_speed_right = -target_speed_right;
+		}
+		else if (mask & CLIFF_4)
+		{
+			target_speed_left = -target_speed_left;
+			target_speed_right = -target_speed_right;
 		}
 		
 		// 运动		
@@ -310,9 +359,10 @@ int main(void)
 			distance = 0;
 		x += distance * sin(-yaw_deg * M_PI / 180.0);
 		y += distance * cos(-yaw_deg * M_PI / 180.0);
+		distance_all += fabs(distance);
 		
 		// 发送实时位姿和速度给上位机
-		HC05_SendData(x, y, yaw_deg, left_speed, right_speed);
+		HC05_SendData(x, y, yaw_deg, left_speed, right_speed, vol, distance_all);
 	
 		rounds++;
 
@@ -405,7 +455,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
   hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 4;
+  hadc1.Init.NbrOfConversion = 5;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -445,6 +495,15 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_14;
   sConfig.Rank = 4;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_7;
+  sConfig.Rank = 5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();

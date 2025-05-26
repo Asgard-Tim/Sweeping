@@ -18,6 +18,8 @@ typedef struct {
     uint16_t yaw;       // 转角 (0-3599，实际值*10)
     int8_t  left_speed; // 左轮速度 (-100~100)
     int8_t  right_speed;// 右轮速度 (-100~100)
+    uint8_t battery;    // 电量（百分比）
+    uint16_t odometer;  // 里程（厘米）
 } Robot_Data_t;
 #pragma pack(pop)
 extern uint8_t hc05_rx_byte;
@@ -32,7 +34,7 @@ __weak void Motor_SetSpeed(int8_t left, int8_t right);
 void HC05_Init(UART_HandleTypeDef *huart);
 
 /* 数据发送接口（保持原有功能） */
-void HC05_SendData(float x, float y, float yaw_deg, float left, float right);
+void HC05_SendData(float x, float y, float yaw_deg, float left, float right, float battery, float odo_cm);
 
 /* 接收中断处理函数 */
 void HC05_UART_RxHandler(uint8_t byte);
@@ -41,5 +43,7 @@ void HC05_UART_RxHandler(uint8_t byte);
 uint8_t* HC05_GetRxBytePtr(void);
 
 void HC05_CheckTimeout(void);
+
+uint8_t HC05_GetControlMode(void);
 
 #endif
