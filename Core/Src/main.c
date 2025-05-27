@@ -85,7 +85,6 @@ Key_HandleTypeDef key[] = {
 /* USER CODE BEGIN PD */
 #define TX_BUF_SIZE 128
 #define M_PI 3.14159265358979323846
-#define CONTROL_DEG 5
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -130,8 +129,12 @@ uint8_t mask;
 uint8_t crash_status;
 float vol;
 uint8_t robot_mode = 0;
+int turning_flag = 0;
+int move_flag = 0;
 int crash_flag = 0;
 float turn_start_deg = 0.0f;
+float memory_x = 0.0f;
+float memory_y = 0.0f;
 //encoder
 Encoder_HandleTypeDef encL, encR;
 /* USER CODE END PV */
@@ -173,11 +176,11 @@ void Motor_SetSpeed(int8_t left, int8_t right) {
     target_speed_right = (float)right;
 }
 
-void turning_left(){
+void turning_left(float CONTROL_DEG){
 	target_speed_left = -5.0f;
 	target_speed_right = 5.0f;
 	imu = JY901S_GetData();
-	if ((imu->yaw > (CONTROL_DEG + turn_start_deg)) || ((imu->yaw > (turn_start_deg + CONTROL_DEG - 360)) && (imu->yaw < CONTROL_DEG - 180)))
+	if ((imu->yaw > (CONTROL_DEG + turn_start_deg)) || ((imu->yaw > (turn_start_deg + CONTROL_DEG - 360)) && (imu->yaw < (CONTROL_DEG - 180))))
 		crash_flag = 0;
 }
 
@@ -291,48 +294,48 @@ int main(void)
 			// 向前移动直到检测到碰撞
 			if (crash_status == 0){
 				if (crash_flag == 0){
-					target_speed_left = 10.0f;
-					target_speed_right = 10.0f;
+					target_speed_left = 15.0f;
+					target_speed_right = 5.0f;
 				}
 				else if (crash_flag == 1)
-					turning_left();
+					turning_left(10);
 			}
 			else{
 				imu = JY901S_GetData();
 				if (crash_flag == 0){
 					turn_start_deg = imu->yaw;
-					target_speed_left = -target_speed_left;
-					target_speed_right = -target_speed_right;
+					target_speed_left = -5;
+					target_speed_right = -5;
 					crash_flag = 1;
 				}
 			}
     }
 
-		// 检测悬崖传感器
-		mask = CliffSensor_GetMask();
-		CliffSensor_GetValues(sensor_vals);
-		if (mask == 0)
-			LED_On(&LED0);
-		else if(mask & CLIFF_1) 
-		{
-			target_speed_left = -target_speed_left;
-			target_speed_right = -target_speed_right;
-		}
-		else if (mask & CLIFF_2) 
-		{
-			target_speed_left = -target_speed_left;
-			target_speed_right = -target_speed_right;
-		}
-		else if (mask & CLIFF_3) 
-		{
-			target_speed_left = -target_speed_left;
-			target_speed_right = -target_speed_right;
-		}
-		else if (mask & CLIFF_4)
-		{
-			target_speed_left = -target_speed_left;
-			target_speed_right = -target_speed_right;
-		}
+//		// 检测悬崖传感器
+//		mask = CliffSensor_GetMask();
+//		CliffSensor_GetValues(sensor_vals);
+//		if (mask == 0)
+//			LED_On(&LED0);
+//		else if(mask & CLIFF_1) 
+//		{
+//			target_speed_left = -target_speed_left;
+//			target_speed_right = -target_speed_right;
+//		}
+//		else if (mask & CLIFF_2) 
+//		{
+//			target_speed_left = -target_speed_left;
+//			target_speed_right = -target_speed_right;
+//		}
+//		else if (mask & CLIFF_3) 
+//		{
+//			target_speed_left = -target_speed_left;
+//			target_speed_right = -target_speed_right;
+//		}
+//		else if (mask & CLIFF_4)
+//		{
+//			target_speed_left = -target_speed_left;
+//			target_speed_right = -target_speed_right;
+//		}
 		
 		// 运动		
 		// 编码器测速
