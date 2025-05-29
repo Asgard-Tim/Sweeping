@@ -32,12 +32,12 @@ compiling main.c...
   #endif
 ..\app\PID\PID.h(19): warning:  #1-D: last line of file ends without a newline
   #endif
-../Core/Src/main.c(358): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+../Core/Src/main.c(383): warning:  #1035-D: single-precision operand implicitly converted to double-precision
   			distance = (left_speed * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位�?
-../Core/Src/main.c(363): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+../Core/Src/main.c(388): warning:  #1035-D: single-precision operand implicitly converted to double-precision
   		x += distance * sin(-yaw_deg * 
 _PI / 180.0);
-../Core/Src/main.c(364): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+../Core/Src/main.c(389): warning:  #1035-D: single-precision operand implicitly converted to double-precision
   		y += distance * cos(-yaw_deg * 
 _PI / 180.0);
 ../Core/Src/main.c(114): warning:  #177-D: variable "key0_last_tick"  was declared but never referenced
@@ -46,7 +46,7 @@ _PI / 180.0);
   static uint32_t key1_last_tick = 0;
 ../Core/Src/main.c: 7 warnings, 0 errors
 linking...
-Program Size: Code=25122 RO-data=750 RW-data=324 ZI-data=2676  
+Program Size: Code=25590 RO-data=746 RW-data=324 ZI-data=2676  
 FromELF: creating hex file...
 "SRobo\SRobo.axf" - 0 Error(s), 7 Warning(s).
 
@@ -71,7 +71,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.3.0
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:03
 </pre>
 </body>
 </html>

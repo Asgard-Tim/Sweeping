@@ -277,21 +277,24 @@ int main(void)
 
 			// 检测碰撞传感器
 			crash_status = CrashSensor_GetStatus();
-			if (crash_status != 0) {
-				if (crash_flag == 0) {
-					target_speed_left = -target_speed_left;
-					target_speed_right = -target_speed_right;
+			if (crash_status == 0){
+				if (crash_flag == 1)
+					turning_left(175);
+			}
+			else{
+				imu = JY901S_GetData();
+				if (crash_flag == 0){
+					turn_start_deg = imu->yaw;
+					target_speed_left = -5;
+					target_speed_right = -5;
 					crash_flag = 1;
 				}
 			}
-			else
-				crash_flag = 0;
     }
     else if (robot_mode == 2) {
 			// 扫图模式
 			// 检测碰撞传感器
 			crash_status = CrashSensor_GetStatus();
-			// 向前移动直到检测到碰撞
 			if (crash_status == 0){
 				if (crash_flag == 0){
 					target_speed_left = 15.0f;
@@ -311,31 +314,53 @@ int main(void)
 			}
     }
 
-//		// 检测悬崖传感器
-//		mask = CliffSensor_GetMask();
-//		CliffSensor_GetValues(sensor_vals);
-//		if (mask == 0)
-//			LED_On(&LED0);
-//		else if(mask & CLIFF_1) 
-//		{
-//			target_speed_left = -target_speed_left;
-//			target_speed_right = -target_speed_right;
-//		}
-//		else if (mask & CLIFF_2) 
-//		{
-//			target_speed_left = -target_speed_left;
-//			target_speed_right = -target_speed_right;
-//		}
-//		else if (mask & CLIFF_3) 
-//		{
-//			target_speed_left = -target_speed_left;
-//			target_speed_right = -target_speed_right;
-//		}
-//		else if (mask & CLIFF_4)
-//		{
-//			target_speed_left = -target_speed_left;
-//			target_speed_right = -target_speed_right;
-//		}
+		// 检测悬崖传感器
+		mask = CliffSensor_GetMask();
+		CliffSensor_GetValues(sensor_vals);
+		if (mask == 0){
+			if (crash_flag == 1)
+				turning_left(175);
+		}
+		else if(mask & CLIFF_1) 
+		{
+			imu = JY901S_GetData();
+			if (crash_flag == 0){
+				turn_start_deg = imu->yaw;
+				target_speed_left = -5;
+				target_speed_right = -5;
+				crash_flag = 1;
+			}
+		}
+		else if (mask & CLIFF_2) 
+		{
+			imu = JY901S_GetData();
+			if (crash_flag == 0){
+				turn_start_deg = imu->yaw;
+				target_speed_left = -5;
+				target_speed_right = -5;
+				crash_flag = 1;
+			}
+		}
+		else if (mask & CLIFF_3) 
+		{
+			imu = JY901S_GetData();
+			if (crash_flag == 0){
+				turn_start_deg = imu->yaw;
+				target_speed_left = -5;
+				target_speed_right = -5;
+				crash_flag = 1;
+			}
+		}
+		else if (mask & CLIFF_4)
+		{
+			imu = JY901S_GetData();
+			if (crash_flag == 0){
+				turn_start_deg = imu->yaw;
+				target_speed_left = -5;
+				target_speed_right = -5;
+				crash_flag = 1;
+			}
+		}
 		
 		// 运动		
 		// 编码器测速
