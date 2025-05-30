@@ -226,10 +226,10 @@ int main(void)
   MX_TIM5_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	cliff_thresholds[0] = 200;
-  cliff_thresholds[1] = 200;
-  cliff_thresholds[2] = 200;
-  cliff_thresholds[3] = 200;
+	cliff_thresholds[0] = 245;
+  cliff_thresholds[1] = 145;
+  cliff_thresholds[2] = 190;
+  cliff_thresholds[3] = 1300;
 	
 	LED_Init_All();
 	Key_Init(&key[0]);
@@ -258,7 +258,20 @@ int main(void)
     // 从上位机 获取机器人运行模式
     // 01 遥控模式/清扫模式
     // 02 自主建图模式
+		// 03 关机
     robot_mode = HC05_GetControlMode();
+		
+		// 更新按键状态
+    Key_Update(&key[0]); // 检测KEY0：按下关机
+    Key_Update(&key[1]); // 检测KEY1：按下开机
+		
+		// 检测KEY0是否刚刚按下（下降沿触发）
+    if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED)
+        robot_mode = 3; 
+		
+		// 检测KEY1是否刚刚按下（下降沿触发）
+    if (Key_GetState(&key[1]) == KEY_STATE_JUST_PRESSED)
+        robot_mode = 0; 
 		
     if (robot_mode == 1) {
 			// 遥控模式
@@ -313,6 +326,13 @@ int main(void)
 				}
 			}
     }
+		else if (robot_mode == 3) {
+			// 关机
+			A4950_SetLeft(0);
+			A4950_SetRight(0);
+			target_speed_left = 0;
+			target_speed_right = 0;
+		}
 
 		// 检测悬崖传感器
 		mask = CliffSensor_GetMask();
@@ -377,10 +397,10 @@ int main(void)
 			memory_deg  = imu->yaw;	
 		yaw_deg  = imu->yaw - memory_deg; // 直接获取偏角			
 		// yaw_deg += imu->gz * (ROUND_TIME / 1000.0f); // 增量法获取偏角
-		if (left_speed < target_speed_left - 1.0f)
-			distance = left_speed * ROUND_TIME / 1000.0f; // 通过轮速获取位移
-		else
-			distance = (left_speed * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
+	  // if (left_speed < target_speed_left - 1.0f)
+		// distance = left_speed * ROUND_TIME / 1000.0f; // 通过轮速获取位移
+		// else
+		distance = ((left_speed + right_speed) / 2 * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
 		// distance += sqrt(imu->ax * imu->ax + imu->ay * imu->ay) * (ROUND_TIME / 1000.0f) * (ROUND_TIME / 1000.0f) * 200; //通过imu加速度积分获取位移
 		// 若纯旋转，不发生位移
 		if (target_speed_left == -target_speed_right)
@@ -388,6 +408,15 @@ int main(void)
 		x += distance * sin(-yaw_deg * M_PI / 180.0);
 		y += distance * cos(-yaw_deg * M_PI / 180.0);
 		distance_all += fabs(distance);
+		
+		// 关机状态重置位姿与坐标
+		if (robot_mode == 3) {
+			x = 0;
+			y = 0;
+			distance_all = 0;
+			memory_deg  = imu->yaw;
+			yaw_deg  = imu->yaw - memory_deg;
+		}
 		
 		// 发送实时位姿和速度给上位机
 		HC05_SendData(x, y, yaw_deg, left_speed, right_speed, vol, distance_all);
