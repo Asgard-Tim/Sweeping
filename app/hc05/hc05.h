@@ -22,6 +22,7 @@ typedef struct {
     uint16_t odometer;  // 里程（厘米）
 } Robot_Data_t;
 #pragma pack(pop)
+extern uint8_t current_mode;
 extern uint8_t hc05_rx_byte;
 extern int8_t hc05_speed_left;
 extern int8_t hc05_speed_right;

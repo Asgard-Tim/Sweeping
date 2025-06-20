@@ -113,6 +113,8 @@ uint8_t uart1_tx_buf[TX_BUF_SIZE];
 uint16_t sensor_vals[CLIFF_SENSOR_COUNT];
 static uint32_t key0_last_tick = 0;
 static uint32_t key1_last_tick = 0;
+static int8_t temp_speed_left = 0;
+static int8_t temp_speed_right = 0;
 int rounds = 0;
 IMU_Data_t *imu;
 float target_speed_left = 0.0f;
@@ -125,16 +127,24 @@ float right_speed = 0.0f;
 float memory_deg = 0.0f;
 float distance = 0.0f;
 float distance_all = 0.0f;
-uint8_t mask;
+uint8_t cliff_mask = 0;
 uint8_t crash_status;
 float vol;
-uint8_t robot_mode = 0;
 int turning_flag = 0;
 int move_flag = 0;
 int crash_flag = 0;
+int cliff_flag = 0;
 float turn_start_deg = 0.0f;
 float memory_x = 0.0f;
 float memory_y = 0.0f;
+RobotMode_t robot_mode = ROBOT_OFF;
+EmergencyFlag_t emergency_flag = NO_CONTROL;
+uint32_t last_protocol_check = 0;
+int start_get_mode = 0;
+bool flag1 = 0;
+bool flag2 = 0;
+bool flag3 = 0;
+bool flag4 = 0;
 //encoder
 Encoder_HandleTypeDef encL, encR;
 /* USER CODE END PV */
@@ -180,8 +190,12 @@ void turning_left(float CONTROL_DEG){
 	target_speed_left = -5.0f;
 	target_speed_right = 5.0f;
 	imu = JY901S_GetData();
-	if ((imu->yaw > (CONTROL_DEG + turn_start_deg)) || ((imu->yaw > (turn_start_deg + CONTROL_DEG - 360)) && (imu->yaw < (CONTROL_DEG - 180))))
+	if ((imu->yaw > (CONTROL_DEG + turn_start_deg)) || ((imu->yaw > (turn_start_deg + CONTROL_DEG - 360)) && (imu->yaw < (CONTROL_DEG - 180)) && (turn_start_deg > (180 - CONTROL_DEG)))){
 		crash_flag = 0;
+		cliff_flag = 0;
+		target_speed_left = 0;
+		target_speed_right = 0;
+	}
 }
 
 /* USER CODE END 0 */
@@ -226,216 +240,222 @@ int main(void)
   MX_TIM5_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
-	cliff_thresholds[0] = 245;
-  cliff_thresholds[1] = 145;
-  cliff_thresholds[2] = 190;
-  cliff_thresholds[3] = 1300;
-	
-	LED_Init_All();
-	Key_Init(&key[0]);
+  LED_Init_All();
+  Key_Init(&key[0]);
   Key_Init(&key[1]);
-	JY901S_Init(&huart2);
-	CliffSensor_Init();
-	A4950_Init();
-	HC05_Init(&huart3);
+  JY901S_Init(&huart2);
+  CliffSensor_Init();
+  A4950_Init();
+  HC05_Init(&huart3);
 
-	// 绑定并启动编码器接口
+  // 绑定并启动编码器接口
   Encoder_Init(&encL, &htim5);
   Encoder_Init(&encR, &htim2);
-	// 清零计数
+  // 清零计数
   Encoder_Reset(&encL);
   Encoder_Reset(&encR);
-	
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {	
-		// 获取电量（0-100）
-		vol = BT15V_GetVoltage();
+  while (1) {
 
-    // 从上位机 获取机器人运行模式
-    // 01 遥控模式/清扫模式
-    // 02 自主建图模式
-		// 03 关机
-    robot_mode = HC05_GetControlMode();
-		
-		// 更新按键状态
-    Key_Update(&key[0]); // 检测KEY0：按下关机
-    Key_Update(&key[1]); // 检测KEY1：按下开机
-		
-		// 检测KEY0是否刚刚按下（下降沿触发）
-    if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED)
-        robot_mode = 3; 
-		
-		// 检测KEY1是否刚刚按下（下降沿触发）
-    if (Key_GetState(&key[1]) == KEY_STATE_JUST_PRESSED)
-        robot_mode = 0; 
-		
-    if (robot_mode == 1) {
-			// 遥控模式
-      // 处理遥控速度值
-      if (hc05_warning_flag == 2) // 急停
-      {
-        target_speed_left = 0;
-        target_speed_right = 0;
-      }
-      else if (hc05_warning_flag == 1) // 速度赋值
-      {
-        target_speed_left = hc05_speed_left;
-        target_speed_right = hc05_speed_right;
-      }
-      hc05_warning_flag = 0;
-
-			// 检测碰撞传感器
-			crash_status = CrashSensor_GetStatus();
-			if (crash_status == 0){
-				if (crash_flag == 1)
-					turning_left(175);
-			}
-			else{
-				imu = JY901S_GetData();
-				if (crash_flag == 0){
-					turn_start_deg = imu->yaw;
-					target_speed_left = -5;
-					target_speed_right = -5;
-					crash_flag = 1;
-				}
-			}
-    }
-    else if (robot_mode == 2) {
-			// 扫图模式
-			// 检测碰撞传感器
-			crash_status = CrashSensor_GetStatus();
-			if (crash_status == 0){
-				if (crash_flag == 0){
-					target_speed_left = 15.0f;
-					target_speed_right = 5.0f;
-				}
-				else if (crash_flag == 1)
-					turning_left(10);
-			}
-			else{
-				imu = JY901S_GetData();
-				if (crash_flag == 0){
-					turn_start_deg = imu->yaw;
-					target_speed_left = -5;
-					target_speed_right = -5;
-					crash_flag = 1;
-				}
-			}
-    }
-		else if (robot_mode == 3) {
-			// 关机
-			A4950_SetLeft(0);
-			A4950_SetRight(0);
-			target_speed_left = 0;
-			target_speed_right = 0;
-		}
-
-		// 检测悬崖传感器
-		mask = CliffSensor_GetMask();
-		CliffSensor_GetValues(sensor_vals);
-		if (mask == 0){
-			if (crash_flag == 1)
-				turning_left(175);
-		}
-		else if(mask & CLIFF_1) 
-		{
-			imu = JY901S_GetData();
-			if (crash_flag == 0){
-				turn_start_deg = imu->yaw;
-				target_speed_left = -5;
-				target_speed_right = -5;
-				crash_flag = 1;
-			}
-		}
-		else if (mask & CLIFF_2) 
-		{
-			imu = JY901S_GetData();
-			if (crash_flag == 0){
-				turn_start_deg = imu->yaw;
-				target_speed_left = -5;
-				target_speed_right = -5;
-				crash_flag = 1;
-			}
-		}
-		else if (mask & CLIFF_3) 
-		{
-			imu = JY901S_GetData();
-			if (crash_flag == 0){
-				turn_start_deg = imu->yaw;
-				target_speed_left = -5;
-				target_speed_right = -5;
-				crash_flag = 1;
-			}
-		}
-		else if (mask & CLIFF_4)
-		{
-			imu = JY901S_GetData();
-			if (crash_flag == 0){
-				turn_start_deg = imu->yaw;
-				target_speed_left = -5;
-				target_speed_right = -5;
-				crash_flag = 1;
-			}
-		}
-		
-		// 运动		
-		// 编码器测速
-		left_speed = getLeftSpeed(&encL);
-		right_speed = getRightSpeed(&encR);
-		// PID控制
-		PID_Control_Left(target_speed_left);
-		PID_Control_Right(target_speed_right);
-		
-		// 计算位姿
+    // 1. 获取传感器数据
+    vol = BT15V_GetVoltage();
+    crash_status = CrashSensor_GetStatus();
+    cliff_mask = CliffSensor_GetMask();
 		imu = JY901S_GetData();
-		// 获取初始位姿偏角
-		if (rounds == 10)
-			memory_deg  = imu->yaw;	
-		yaw_deg  = imu->yaw - memory_deg; // 直接获取偏角			
-		// yaw_deg += imu->gz * (ROUND_TIME / 1000.0f); // 增量法获取偏角
-	  // if (left_speed < target_speed_left - 1.0f)
-		// distance = left_speed * ROUND_TIME / 1000.0f; // 通过轮速获取位移
-		// else
-		distance = ((left_speed + right_speed) / 2 * 1.25 + 0.1) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
-		// distance += sqrt(imu->ax * imu->ax + imu->ay * imu->ay) * (ROUND_TIME / 1000.0f) * (ROUND_TIME / 1000.0f) * 200; //通过imu加速度积分获取位移
-		// 若纯旋转，不发生位移
+		flag1 = CliffSensor_IsCliff(0);
+		flag2 = CliffSensor_IsCliff(1);
+		flag3 = CliffSensor_IsCliff(2);
+		flag4 = CliffSensor_IsCliff(3);
+
+	// 更新按键状态
+    Key_Update(&key[0]); // 检测KEY0：按下关机
+		Key_Update(&key[1]); // 检测KEY1：按下开机
+
+    // 2. 模式切换
+    if (Key_GetState(&key[0]) == KEY_STATE_JUST_PRESSED){ 
+			robot_mode = ROBOT_OFF;
+			start_get_mode = 0;
+			current_mode = 0;
+		}
+		if (Key_GetState(&key[1]) == KEY_STATE_JUST_PRESSED)
+			start_get_mode = 1;
+		
+		if (start_get_mode)
+			robot_mode = HC05_GetControlMode();
+
+    // 3. 模式处理
+    switch (robot_mode) {
+      case REMOTE_CONTROL:
+        // 急停处理
+        if (hc05_warning_flag == EMERGENCY_STOP) {
+          target_speed_left = target_speed_right = 0;
+					cliff_flag = 0;
+        } 
+        else if (hc05_warning_flag == NORMAL_SPEED && cliff_flag == 0) {
+          target_speed_left = hc05_speed_left;
+          target_speed_right = hc05_speed_right;
+        }
+        hc05_warning_flag = NO_CONTROL;
+
+				// 优先处理碰撞
+				if (crash_status == 0) {  // 
+					if (crash_flag == 1) turning_left(175);
+				}
+				else {
+					imu = JY901S_GetData();
+					if (crash_flag == 0) {
+						turn_start_deg = imu->yaw;
+						target_speed_left = -5;
+						target_speed_right = -5;
+						crash_flag = 1;
+					}
+				}
+
+				// 其次处理悬崖
+				if (cliff_mask == 0) {
+					if (cliff_flag == 1) turning_left(30);
+				}
+				else {
+					imu = JY901S_GetData();
+					if (cliff_flag == 0) {
+						turn_start_deg = imu->yaw;
+						A4950_SetLeft(0);
+						A4950_SetRight(0);
+						target_speed_left = -5;
+						target_speed_right = -5;
+						cliff_flag = 1;
+					}
+				}
+
+        break;
+
+      case AUTO_MAPPING:
+        // 建图模式障碍处理
+				// （旧）优先处理碰撞
+//        if (crash_status == 0){
+//					if (crash_flag == 0){
+//						target_speed_left = 15.0f;
+//						target_speed_right = 3.0f;
+//					}
+//					else if (crash_flag == 1)
+//						turning_left(10);
+//				}
+//				else{
+//					imu = JY901S_GetData();
+//					if (crash_flag == 0){
+//						turn_start_deg = imu->yaw;
+//						target_speed_left = -3;
+//						target_speed_right = -3;
+//						crash_flag = 1;
+//					}
+//				}
+				// （新）优先处理碰撞
+        if (crash_status == 0){
+					if (crash_flag == 0){
+						target_speed_left = 18.0f;
+						target_speed_right = 3.0f;
+					}
+					else if (crash_flag == 1) 
+							turning_left(60);
+					else if (crash_flag == 2) {
+							target_speed_left = -5.0f;
+							target_speed_right = 5.0f;
+							crash_flag = 0;
+					}
+					else if (crash_flag == 3) 
+							turning_left(40);
+				}
+				else{
+					imu = JY901S_GetData();
+					if (crash_flag == 0){
+						turn_start_deg = imu->yaw;
+//						target_speed_left = -3;
+//						target_speed_right = -3;
+						if (crash_status == 1)
+							crash_flag = 1;
+	//						turning_left(90);
+						else if (crash_status == 2) {
+							target_speed_left = -5.0f;
+							target_speed_right = 5.0f;
+						}
+	//						turning_left(20);
+						else if (crash_status == 3)
+							crash_flag = 3;
+	//						turning_left(60);
+					}
+					else if (crash_flag == 1) 
+							turning_left(60);
+					else if (crash_flag == 2) {
+							target_speed_left = -5.0f;
+							target_speed_right = 5.0f;
+							crash_flag = 0;
+					}
+					else if (crash_flag == 3) 
+							turning_left(40);
+				}
+				// 其次处理悬崖
+				if (cliff_mask != 0) {
+					target_speed_left = -5;
+					target_speed_right = -5;
+				}
+
+        break;
+
+      case ROBOT_OFF:
+        ResetRobotState(&x, &y, &distance_all, &rounds, crash_flag);
+        break;
+    }
+
+    // 4. 运动控制
+    left_speed = getLeftSpeed(&encL);
+    right_speed = getRightSpeed(&encR);
+    PID_Control_Left(target_speed_left);
+    PID_Control_Right(target_speed_right);
+
+    // 5. 位姿计算（融合IMU+编码器）
+    imu = JY901S_GetData();
+    if (rounds == 10) memory_deg = imu->yaw;
+    yaw_deg = imu->yaw - memory_deg;
+    
+    distance = ((left_speed + right_speed) / 2 * 1.25) * ROUND_TIME / 1000.0f; // 通过轮速获取位移
 		if (target_speed_left == -target_speed_right)
 			distance = 0;
-		x += distance * sin(-yaw_deg * M_PI / 180.0);
-		y += distance * cos(-yaw_deg * M_PI / 180.0);
-		distance_all += fabs(distance);
-		
-		// 关机状态重置位姿与坐标
-		if (robot_mode == 3) {
-			x = 0;
-			y = 0;
-			distance_all = 0;
-			memory_deg  = imu->yaw;
-			yaw_deg  = imu->yaw - memory_deg;
-		}
-		
-		// 发送实时位姿和速度给上位机
-		HC05_SendData(x, y, yaw_deg, left_speed, right_speed, vol, distance_all);
-	
-		rounds++;
+    x += distance * sin(-yaw_deg * M_PI / 180.0f);
+    y += distance * cos(-yaw_deg * M_PI / 180.0f);
+    distance_all += fabs(distance);
 
-    // 添加协议超时检查
-    static uint32_t last_protocol_check = 0;
-    if(HAL_GetTick() - last_protocol_check > 100) {
-        HC05_CheckTimeout();
-        last_protocol_check = HAL_GetTick();
+    // 6. 数据上传
+    HC05_SendData(x, y, yaw_deg, left_speed, right_speed, vol, distance_all);
+
+    // 7. 协议超时检查（非阻塞）
+    if (HAL_GetTick() - last_protocol_check >= 100) {
+      HC05_CheckTimeout();
+      last_protocol_check = HAL_GetTick();
     }
 
-		HAL_Delay(ROUND_TIME);
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+    HAL_Delay(ROUND_TIME);
+    rounds++;
   }
   /* USER CODE END 3 */
+}
+
+// 重置机器人状态
+void ResetRobotState(float* x, float* y, float* distance_all, uint32_t* rounds, int crash_flag) {
+  imu = JY901S_GetData();
+  *x = *y = *distance_all = 0;
+  *rounds = 0;
+  A4950_SetLeft(0);
+  A4950_SetRight(0);
+  target_speed_left = 0;
+  target_speed_right = 0;
+	crash_flag = 0;
+	cliff_flag = 0;
+  memory_deg  = imu->yaw;
+  yaw_deg  = imu->yaw - memory_deg;
 }
 
 /**

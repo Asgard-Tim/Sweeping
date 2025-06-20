@@ -28,7 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
+#include <math.h>
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -55,6 +55,27 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+
+// 机器人模式枚举
+typedef enum {
+    ROBOT_OFF = 0,       // 关机
+    REMOTE_CONTROL = 1,  // 遥控模式
+    AUTO_MAPPING = 2     // 自主建图模式
+} RobotMode_t;
+
+// 急停标志枚举
+typedef enum {
+    EMERGENCY_STOP = 2,
+    NORMAL_SPEED = 1,
+    NO_CONTROL = 0
+} EmergencyFlag_t;
+
+// 处理障碍物（碰撞/悬崖）
+void HandleObstacle(uint8_t type, float* target_left, float* target_right, int crash_flag);
+// 重置机器人状态
+void ResetRobotState(float* x, float* y, float* distance_all, uint32_t* rounds, int crash_flag);
+
+
 
 /* USER CODE END EFP */
 

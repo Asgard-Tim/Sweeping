@@ -8,7 +8,7 @@ extern TIM_HandleTypeDef htim3;
 // ADC DMA采样缓存，存放所有通道采样值：前4个是悬崖传感器，最后1个是BT15V电压通道
 static uint16_t adc_values[TOTAL_ADC_CHANNELS] = {0};
 
-uint16_t cliff_thresholds[CLIFF_SENSOR_COUNT] = {2000, 2000, 2000, 2000};
+uint16_t cliff_thresholds[CLIFF_SENSOR_COUNT] = {245, 145, 190, 130};
 
 #define ADC_REF_VOLTAGE 3.3f
 #define ADC_RESOLUTION  4096.0f

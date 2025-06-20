@@ -24,7 +24,7 @@ typedef enum {
     WAIT_END
 } RxState_t;
 
-static uint8_t current_mode = CONTROL_MODE_REMOTE; // 当前控制模式
+uint8_t current_mode = 0; // 当前控制模式
 static RxState_t rx_state = 0;
 static uint8_t rx_buffer[2];       // 缓冲区调整为控制指令需要的大小
 static uint8_t data_index = 0;
